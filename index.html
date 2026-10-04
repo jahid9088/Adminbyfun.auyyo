@@ -1,0 +1,1357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-BMVUQBaospFwRKYfplz6ATZ/pVxdEBi05tAefVghhZM='; style-src 'sha256-klIvkRsnxZJnOhbnYN6nyvBoUVsKuHXiKQhgJ0Uetgg='; connect-src https://oauth2.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#06070E">
+<title>FUN XPro Admin</title>
+<style>
+:root{
+  --bg:#06070E;--panel:#0D1020;--panel2:#141838;--field:#080A18;
+  --line:#1D2245;--line2:#2B3266;
+  --txt:#E8EBFF;--dim:#8C94C2;--faint:#5C6596;
+  --gold:#FFD21F;--ok:#19E3B1;--warn:#FFA928;--bad:#FF4D5E;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{color-scheme:dark;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--txt);font:15px/1.45 var(--sans);min-height:100vh;
+  background-image:radial-gradient(1000px 420px at 50% -140px,rgba(255,210,31,.08),transparent 70%);background-repeat:no-repeat}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:8px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.dim{color:var(--dim)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ── shell ── */
+.shell{max-width:1200px;margin:0 auto;padding:0 16px calc(96px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;gap:12px;padding:16px 0 12px}
+.brand{flex:1;min-width:0}
+.brand b{display:block;font-size:18px;letter-spacing:.2px}
+.brand span{display:block;font-size:12px;color:var(--dim)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;
+  background:var(--panel2);border:1px solid var(--line2);font-weight:600;font-size:14px;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--faint)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#1A1300;font-weight:700}
+.btn.gold:hover{background:#FFE04F}
+.btn.danger{color:var(--bad);border-color:rgba(255,77,94,.45);background:rgba(255,77,94,.08)}
+.btn.danger.solid{background:var(--bad);border-color:var(--bad);color:#1F0006;font-weight:700}
+.btn.sm{min-height:36px;padding:0 12px;font-size:13px;border-radius:10px}
+.btn.block{width:100%}
+
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:12px 14px;font-weight:600;color:var(--dim);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab[aria-selected=true]{color:var(--txt);border-bottom-color:var(--gold)}
+.tab small{margin-left:6px;font:600 11px var(--mono);color:var(--faint)}
+.view{padding-top:16px}
+
+/* ── fields ── */
+.field{display:block;margin-bottom:14px}
+.field>span{display:block;font-size:13px;color:var(--dim);margin-bottom:6px}
+.field>small{display:block;font-size:12px;color:var(--faint);margin-top:6px}
+input[type=text],input[type=password],input[type=search],input[type=number],input[type=url],select,textarea{
+  width:100%;min-height:46px;padding:10px 14px;background:var(--field);border:1px solid var(--line2);border-radius:12px;font-size:16px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+input::placeholder{color:var(--faint)}
+textarea{min-height:90px;resize:vertical}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--dim);margin:12px 0}
+.check input{width:20px;height:20px;margin-top:1px;accent-color:var(--gold);flex:0 0 auto}
+
+/* ── users: filter chips + toolbar ── */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;display:flex;align-items:baseline;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--line2);color:var(--dim);font-weight:600;font-size:14px}
+.chip b{font:700 14px var(--mono);color:var(--txt)}
+.chip[aria-pressed=true]{border-color:var(--gold);color:var(--txt);background:rgba(255,210,31,.08)}
+.chip.bad b{color:var(--bad)}
+.chip.warn b{color:var(--warn)}
+.bar{display:flex;gap:8px;margin-bottom:12px}
+.bar .grow{flex:1;min-width:0}
+.bar select{width:auto;flex:0 0 auto;min-width:112px}
+.sub{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 10px;color:var(--dim);font-size:13px}
+
+/* ── layout: list + detail ── */
+.cols{display:block}
+@media (min-width:960px){
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:24px;align-items:start}
+  .detail{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
+}
+
+/* ── user rows ── */
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:5px minmax(0,1fr) auto;align-items:stretch;text-align:left;width:100%;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-height:68px;transition:border-color .15s,background .15s}
+.row:hover{background:var(--panel2)}
+.row[aria-current=true]{border-color:var(--gold)}
+.row .rail{background:var(--ok)}
+.row.st-suspended .rail{background:var(--warn)}
+.row.st-blocked .rail{background:var(--bad)}
+.row.st-other .rail{background:var(--faint)}
+.rmain{padding:12px 14px;min-width:0}
+.rmain .n{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.num{font:700 17px var(--mono);letter-spacing:.3px;font-variant-numeric:tabular-nums}
+.meta{display:block;font-size:12.5px;color:var(--dim);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rside{padding:12px 14px 12px 0;text-align:right;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.bal{font:700 15px var(--mono)}
+.stl{font-size:12px;font-weight:600;color:var(--ok)}
+.st-suspended .stl{color:var(--warn)}.st-blocked .stl{color:var(--bad)}.st-other .stl{color:var(--dim)}
+.tag{font:700 10.5px var(--sans);padding:2px 7px;border-radius:6px;border:1px solid var(--line2);color:var(--dim)}
+.tag.demo{color:var(--gold);border-color:rgba(255,210,31,.4)}
+.tag.fix{color:var(--warn);border-color:rgba(255,169,40,.5)}
+.pick{width:22px;height:22px;border-radius:7px;border:2px solid var(--line2);flex:0 0 auto;margin:auto 0 auto 12px}
+.pick.on{background:var(--gold);border-color:var(--gold);box-shadow:inset 0 0 0 4px var(--panel)}
+.row.selmode{grid-template-columns:5px auto minmax(0,1fr) auto}
+.more{margin:14px auto 0;display:flex}
+.empty{padding:36px 16px;text-align:center;color:var(--dim);border:1px dashed var(--line2);border-radius:14px}
+.empty b{display:block;color:var(--txt);margin-bottom:4px}
+
+/* ── detail panel / sheet ── */
+.scrim{position:fixed;inset:0;background:rgba(2,3,10,.72);z-index:30}
+.detail{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}
+.detail.empty-d{display:none}
+@media (max-width:959px){
+  .detail{position:fixed;left:0;right:0;bottom:0;z-index:31;border-radius:20px 20px 0 0;max-height:90vh;overflow:auto;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom));transform:translateY(0);animation:up .22s ease-out}
+  .detail.empty-d{display:none}
+}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.detail{animation:none}*{transition:none!important}}
+.dhead{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
+.dhead .num{font-size:22px;flex:1;word-break:break-all}
+.x{width:40px;height:40px;border-radius:10px;border:1px solid var(--line2);color:var(--dim);font-size:20px;line-height:1;flex:0 0 auto}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+.seg button{min-height:44px;border-radius:10px;border:1px solid var(--line2);font-weight:600;font-size:14px;color:var(--dim)}
+.seg button[aria-pressed=true].a{background:rgba(25,227,177,.14);border-color:var(--ok);color:var(--ok)}
+.seg button[aria-pressed=true].s{background:rgba(255,169,40,.14);border-color:var(--warn);color:var(--warn)}
+.seg button[aria-pressed=true].b{background:rgba(255,77,94,.14);border-color:var(--bad);color:var(--bad)}
+.sec{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.sec>h3{font-size:13px;font-weight:700;color:var(--dim);margin-bottom:10px}
+.kv{display:grid;grid-template-columns:104px minmax(0,1fr);gap:8px 12px;font-size:14px}
+.kv dt{color:var(--dim)}
+.kv dd{min-width:0;word-break:break-all}
+.kv dd.line{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.kv dd.line span{min-width:0;word-break:break-all}
+.link{color:var(--gold);font-weight:600;font-size:13px;padding:6px 8px;border-radius:8px;flex:0 0 auto}
+.warnbox{background:rgba(255,169,40,.08);border:1px solid rgba(255,169,40,.4);border-radius:12px;padding:12px;font-size:13.5px;color:#FFD9A0;margin-bottom:14px}
+.warnbox .btn{margin-top:10px}
+.hint{font-size:12.5px;color:var(--faint);margin:-6px 0 12px}
+
+/* ── bulk bar ── */
+.bulk{position:fixed;left:0;right:0;bottom:0;z-index:25;background:rgba(13,16,32,.97);border-top:1px solid var(--line2);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;overflow-x:auto}
+.bulk .cnt{font:700 14px var(--mono);margin-right:auto;white-space:nowrap}
+
+/* ── generic list rows (demo, deposits, logs) ── */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;margin-bottom:4px}
+.card p{color:var(--dim);font-size:13.5px;margin-bottom:12px}
+.line-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.line-row:first-child{border-top:0}
+.line-row .grow{flex:1;min-width:0}
+.line-row .t{font-size:13px;color:var(--dim)}
+.pill{font:700 11px var(--sans);padding:3px 9px;border-radius:999px;border:1px solid var(--line2);color:var(--dim)}
+.pill.on{color:var(--ok);border-color:rgba(25,227,177,.5)}
+.pill.warn{color:var(--warn);border-color:rgba(255,169,40,.5)}
+.pill.bad{color:var(--bad);border-color:rgba(255,77,94,.5)}
+.sw{min-width:64px}
+.logline{padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.logline:first-child{border-top:0}
+.logline .a{font:700 13px var(--mono)}
+.logline .t{display:block;font-size:12px;color:var(--faint);margin-top:2px}
+.seg2{display:inline-grid;grid-auto-flow:column;gap:4px;padding:4px;border:1px solid var(--line2);border-radius:12px;margin-bottom:12px}
+.seg2 button{min-height:36px;padding:0 14px;border-radius:9px;font-weight:600;font-size:14px;color:var(--dim)}
+.seg2 button[aria-pressed=true]{background:var(--panel2);color:var(--txt)}
+
+/* ── lock screen ── */
+.lock{min-height:100vh;display:grid;place-items:center;padding:20px}
+.lock .box{width:100%;max-width:380px}
+.lock h1{font-size:24px;margin-bottom:4px}
+.lock p{color:var(--dim);margin-bottom:22px}
+.err{color:var(--bad);font-size:13.5px;min-height:20px;margin:8px 0}
+
+/* ── modal + toast ── */
+.mscrim{position:fixed;inset:0;background:rgba(2,3,10,.78);z-index:50;display:grid;place-items:center;padding:16px;overflow:auto}
+.modal{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--line2);border-radius:18px;padding:20px}
+.modal h2{font-size:18px;margin-bottom:8px}
+.modal p{color:var(--dim);font-size:14px;margin-bottom:14px}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);
+  background:#171B3F;border:1px solid var(--line2);border-left:4px solid var(--ok);border-radius:12px;padding:12px 16px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.toast.bad{border-left-color:var(--bad)}
+.stat{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 2px}
+.stat div{min-width:96px}
+.stat b{display:block;font:700 20px var(--mono)}
+.stat span{font-size:12.5px;color:var(--dim)}
+@media (min-width:960px){
+  .scrim{display:none}
+  .detail.empty-d{display:block;text-align:center;color:var(--faint);padding:48px 20px}
+}
+
+/* ── single-file (direct) lock screen ── */
+[hidden]{display:none!important}
+.lock .box>.btn.block+.hint{margin-top:10px}
+.lock .hint{color:var(--ok);font-size:13.5px;word-break:break-all;min-height:20px;margin:10px 0 4px}
+details.alt{margin:12px 0}
+details.alt>summary{cursor:pointer;color:var(--dim);font-size:14px;padding:8px 0;list-style:none}
+details.alt>summary::-webkit-details-marker{display:none}
+details.alt>summary::before{content:'+';display:inline-block;width:18px;color:var(--gold);font-weight:700}
+details.alt[open]>summary::before{content:'−'}
+details.alt textarea{margin-top:6px;font:12px var(--mono);min-height:110px}
+.lock .link{display:block;margin:14px auto 0}
+
+</style>
+</head>
+<body data-mode="direct">
+<div id="app"></div>
+<noscript>This admin panel needs JavaScript.</noscript>
+<script>
+(function () {
+'use strict';
+
+// ───────────── tiny DOM helpers (all text goes through textContent: nothing from the database is ever parsed as HTML) ─────────────
+function $(s, r) { return (r || document).querySelector(s); }
+function addOne(el, c) {
+  if (c === null || c === undefined || c === false) return;
+  if (Array.isArray(c)) { c.forEach(function (x) { addOne(el, x); }); return; }
+  el.appendChild(typeof c === 'object' ? c : document.createTextNode(String(c)));
+}
+function add(el) { for (var i = 1; i < arguments.length; i++) addOne(el, arguments[i]); }
+function h(tag, props) {
+  var el = document.createElement(tag);
+  if (props) for (var k in props) {
+    var v = props[k];
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+    else if (k in el && k.indexOf('-') < 0) el[k] = v;
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (var i = 2; i < arguments.length; i++) add(el, arguments[i]);
+  return el;
+}
+function isObj(x) { return x !== null && typeof x === 'object' && !Array.isArray(x); }
+function entries(o) {
+  if (!o) return [];
+  if (Array.isArray(o)) { var r = []; o.forEach(function (v, i) { if (v !== null && v !== undefined) r.push([String(i), v]); }); return r; }
+  if (typeof o !== 'object') return [];
+  return Object.keys(o).map(function (k) { return [k, o[k]]; });
+}
+function rs(v) { var n = Number(v); if (!isFinite(n)) n = 0; return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+function fdate(ts) {
+  var n = Number(ts); if (!n) return '—';
+  return new Date(n).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+function ago(ts) {
+  var n = Number(ts); if (!n) return '';
+  var s = Math.max(0, (Date.now() - n) / 1000);
+  if (s < 90) return 'just now';
+  if (s < 3600) return Math.round(s / 60) + ' min ago';
+  if (s < 86400) return Math.round(s / 3600) + ' h ago';
+  if (s < 86400 * 30) return Math.round(s / 86400) + ' d ago';
+  return fdate(n);
+}
+function copy(text, what) {
+  function ok() { toast((what || 'Copied')); }
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(ok, fallback); }
+  else fallback();
+  function fallback() {
+    var t = h('textarea', { value: text }); document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); ok(); } catch (e) { toast('Copy is blocked by this browser', true); }
+    t.remove();
+  }
+}
+var toastT;
+function toast(msg, bad) {
+  var old = $('.toast'); if (old) old.remove();
+  var t = h('div', { class: 'toast' + (bad ? ' bad' : ''), role: 'status', text: msg });
+  document.body.appendChild(t); clearTimeout(toastT);
+  toastT = setTimeout(function () { t.remove(); }, bad ? 5200 : 2600);
+}
+
+// ───────────── state ─────────────
+// hosted = this same file uploaded to ordinary web hosting; it then talks to the Worker at the URL typed on the lock screen
+var MODE = document.body.getAttribute('data-mode') || 'worker';
+var HOSTED = MODE === 'hosted';   // page on another website, Worker address typed on the lock screen
+var PHPAPI = MODE === 'php';      // page and api.php live on the same ordinary web hosting
+// MODE 'direct' = one single page, no server at all: it talks to Google + Firebase itself (see the direct block below)
+var DIRECT = MODE === 'direct';
+var S = {
+  secret: '', base: '', loaded: false, tab: 'users',
+  users: [], map: {}, demo: [], dep: [], cfg: {},
+  audit: null, depLogs: null,
+  filter: 'all', q: '', sort: 'new', shown: 60, selMode: false, sel: {}, open: null,
+  logKind: 'audit', logQ: ''
+};
+var app = $('#app');
+var view = null, detailEl = null, scrimEl = null, bulkEl = null, tabsEl = null;
+var listRefresh = null;
+
+// ───────────── storage of the password (this device only, only if you tick the box) ─────────────
+function getStored() { try { return sessionStorage.getItem('fxa') || localStorage.getItem('fxa') || ''; } catch (e) { return ''; } }
+function getBase() { try { return localStorage.getItem('fxu') || ''; } catch (e) { return ''; } }
+function setBase(u) { try { localStorage.setItem('fxu', u); } catch (e) {} }
+function cleanBase(v) {        // the Worker address: https only, nothing after the host
+  v = String(v || '').trim(); if (!v) return '';
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(v)) v = 'https://' + v;
+  try { var u = new URL(v); var local = u.protocol === 'http:' && (u.hostname === 'localhost' || u.hostname === '127.0.0.1'); return (u.protocol === 'https:' && u.hostname.indexOf('.') > 0 || local) && !u.username ? u.origin : ''; } catch (e) { return ''; }
+}
+function setStored(s, remember) {
+  try { sessionStorage.removeItem('fxa'); localStorage.removeItem('fxa'); (remember ? localStorage : sessionStorage).setItem('fxa', s); } catch (e) {}
+}
+function clearStored() { try { sessionStorage.removeItem('fxa'); localStorage.removeItem('fxa'); } catch (e) {} }
+
+// ───────────── api ─────────────
+function AuthErr() { this.auth = true; }
+// ───────────── DIRECT MODE: this one page talks to Google + Firebase itself (no server, no PHP, no Worker) ─────────────
+// The Firebase key file is read in the browser, used to sign a short-lived Google login, and never sent anywhere else.
+var DEFAULT_DB = 'https://lovemessge-default-rtdb.firebaseio.com';
+var SCOPE = 'https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email';
+var NUM = /^[0-9]{2,20}$/;
+var STATUSES = ['ACTIVE', 'SUSPENDED', 'BLOCKED'];
+var READ_NODES = { Users: 1, dbRef: 1, DemoAccounts: 1, DepositRequired: 1, DepositLogs: 1, Config: 1 };
+var D = { key: null, email: '', db: DEFAULT_DB, token: '', exp: 0, minting: null };
+var te = new TextEncoder(), td = new TextDecoder();
+
+function KeyErr(m) { this.message = m; this.key = true; }
+function bytesToB64(buf) { var a = new Uint8Array(buf), s = ''; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+function b64ToBytes(s) { var b = atob(s), o = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) o[i] = b.charCodeAt(i); return o; }
+function b64u(buf) { return bytesToB64(buf).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function pemToDer(pem) { return b64ToBytes(pem.replace(/-----[A-Z ]+-----/g, '').replace(/\s+/g, '')).buffer; }
+
+// ── Google sign-in with the key file (RS256 JWT, signed right here with WebCrypto)
+async function mintToken() {
+  if (D.minting) return D.minting;
+  D.minting = (async function () {
+    try {
+      var now = Math.floor(Date.now() / 1000);
+      var head = b64u(te.encode(JSON.stringify({ alg: 'RS256', typ: 'JWT' })));
+      var claim = b64u(te.encode(JSON.stringify({ iss: D.email, scope: SCOPE, aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3300 })));
+      var sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', D.key, te.encode(head + '.' + claim));
+      var r;
+      try {
+        r = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: head + '.' + claim + '.' + b64u(sig) }).toString() });
+      } catch (e) { throw new Error('Cannot reach Google. Check your internet connection.'); }
+      var j = null; try { j = await r.json(); } catch (e) {}
+      if (!r.ok || !j || !j.access_token) {
+        var why = String((j && (j.error_description || j.error)) || r.status);
+        if (/iat|exp|short-lived|timeframe/i.test(why)) throw new KeyErr("Google rejected the sign-in because the date or time on this phone/computer is wrong. Set the clock to automatic and try again.");
+        if (/signature|invalid_grant|revoked|not found|disabled/i.test(why)) throw new KeyErr('Google does not accept this key (' + why.slice(0, 80) + '). Download a fresh key from Firebase and choose it again.');
+        throw new KeyErr('Google sign-in failed: ' + why.slice(0, 120));
+      }
+      D.token = j.access_token; D.exp = Date.now() + (j.expires_in || 3600) * 1000;
+    } finally { D.minting = null; }
+  })();
+  return D.minting;
+}
+async function getToken() { if (!D.token || Date.now() > D.exp - 120000) await mintToken(); return D.token; }
+
+// ── Firebase (admin access through the key)
+async function fbRaw(method, path, body, query) {
+  var url = D.db + '/' + path + '.json' + (query ? '?' + new URLSearchParams(query).toString() : '');
+  for (var attempt = 0; ; attempt++) {
+    var opt = { method: method, headers: { 'Authorization': 'Bearer ' + await getToken() }, cache: 'no-store' };
+    if (body !== undefined) { opt.body = JSON.stringify(body); opt.headers['Content-Type'] = 'application/json'; }
+    var r;
+    try { r = await fetch(url, opt); } catch (e) { throw new Error('Cannot reach Firebase. Check your internet connection.'); }
+    if (r.status === 401 && attempt === 0) { D.token = ''; continue; }   // the login may have just expired: sign in again once
+    return r;
+  }
+}
+async function fbJson(method, path, body, query) {
+  var r = await fbRaw(method, path, body, query);
+  var t = await r.text(), j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
+  if (!r.ok) throw new Error(r.status === 401 ? 'Firebase refused this key (401). Check that the key is from this project and the database address is right.' : 'Firebase ' + r.status + ': ' + ((j && j.error) || t.slice(0, 120)));
+  return j;
+}
+function patch(updates) { return fbJson('PATCH', '', updates); }
+async function audit(action, target) {
+  try { await fbJson('POST', 'AuditLogs', { actor: 'ADMIN', action: String(action).slice(0, 60), target: String(target).slice(0, 200), timestamp: { '.sv': 'timestamp' } }); } catch (e) { /* the action itself already succeeded */ }
+}
+async function existing() {
+  var res = await Promise.all([fbJson('GET', 'Users', undefined, { shallow: 'true' }), fbJson('GET', 'dbRef', undefined, { shallow: 'true' })]);
+  return { u: new Set(Object.keys(res[0] || {})), d: new Set(Object.keys(res[1] || {})) };
+}
+
+// ───────────────────────── validation ─────────────────────────
+class Bad extends Error { constructor(m, s) { super(m); this.status = s || 400; } }
+function needNumber(v) {
+  const n = String(v === undefined || v === null ? "" : v).trim();
+  if (!NUM.test(n)) throw new Bad("Number must be 2 to 20 digits.");
+  return n;
+}
+function needNumbers(arr, max) {
+  if (!Array.isArray(arr) || !arr.length) throw new Bad("No numbers given.");
+  if (arr.length > max) throw new Bad("At most " + max + " numbers at a time.");
+  return Array.from(new Set(arr.map(needNumber)));
+}
+function needMoney(v, label) {
+  const s = String(v).trim();
+  if (!/^-?[0-9]{1,12}(\.[0-9]{1,2})?$/.test(s)) throw new Bad(label + " must be a number like 150 or 150.50.");
+  return s;
+}
+function needText(v, label, max) {
+  const s = String(v);
+  if (s.length > max) throw new Bad(label + " is too long (max " + max + ").");
+  return s;
+}
+
+// field -> validator (value is already known to be defined)
+const USER_FIELDS = {
+  balance: (v) => needMoney(v, "Balance"),
+  lastBalance: (v) => needMoney(v, "Last balance"),
+  loginCount: (v) => { const n = Number(v); if (!Number.isInteger(n) || n < 0 || n > 1e9) throw new Bad("Login count must be a whole number."); return n; },
+  code: (v) => needText(v, "Password", 200),
+  uid: (v) => needText(v, "UID", 200),
+  brand: (v) => needText(v, "Brand", 200),
+  deviceId: (v) => needText(v, "Device id", 200),
+  battery: (v) => needText(v, "Battery", 200),
+  time: (v) => needText(v, "Time", 200),
+  note: (v) => needText(v, "Note", 300),
+};
+
+
+// ───────────────────────── actions ─────────────────────────
+const ACTIONS = {
+  async "user/status"(b) {
+    const n = needNumber(b.number);
+    if (!STATUSES.includes(b.status)) throw new Bad("Status must be ACTIVE, SUSPENDED or BLOCKED.");
+    const ex = await existing(), up = {};
+    if (ex.u.has(n)) up["Users/" + n + "/accountStatus"] = b.status;
+    if (ex.d.has(n)) up["dbRef/" + n + "/accountStatus"] = b.status;
+    if (!Object.keys(up).length) throw new Bad("That number is not registered.", 404);
+    await patch(up);
+    await audit("ADMIN_STATUS", n + " -> " + b.status);
+    return { ok: true };
+  },
+
+  async "user/update"(b) {
+    const n = needNumber(b.number);
+    const f = b.fields;
+    if (!f || typeof f !== "object") throw new Bad("Nothing to change.");
+    const vals = {};
+    for (const k of Object.keys(f)) {
+      if (k === "currentBalance") continue;
+      if (!USER_FIELDS[k]) throw new Bad("Field '" + k + "' cannot be edited here.");
+      // empty text clears the field (never for balances / counters)
+      if ((f[k] === "" || f[k] === null) && ["code", "uid", "brand", "deviceId", "battery", "time", "note"].includes(k)) vals[k] = null;
+      else vals[k] = USER_FIELDS[k](f[k]);
+    }
+    if (f.balance !== undefined) vals.currentBalance = vals.balance;   // the app keeps both in step
+    if (!Object.keys(vals).length) throw new Bad("Nothing to change.");
+    const ex = await existing(), up = {};
+    for (const k of Object.keys(vals)) {
+      if (ex.u.has(n)) up["Users/" + n + "/" + k] = vals[k];
+      if (ex.d.has(n)) up["dbRef/" + n + "/" + k] = vals[k];
+    }
+    if (!Object.keys(up).length) throw new Bad("That number is not registered.", 404);
+    await patch(up);
+    await audit("ADMIN_EDIT", n + " [" + Object.keys(f).join(",") + "]");
+    return { ok: true };
+  },
+
+  async "user/create"(b) {
+    const n = needNumber(b.number);
+    const ex = await existing();
+    if (ex.u.has(n) || ex.d.has(n)) throw new Bad("That number is already registered.", 409);
+    const rec = { mobile: n, balance: "0", currentBalance: "0", lastBalance: "0", loginCount: 0, accountStatus: "ACTIVE", createdAt: { ".sv": "timestamp" } };
+    if (b.code !== undefined && b.code !== "") rec.code = needText(b.code, "Password", 200);
+    await patch({ ["Users/" + n]: rec, ["dbRef/" + n]: rec });
+    await audit("ADMIN_CREATE", n);
+    return { ok: true };
+  },
+
+  async "user/delete"(b) {
+    const n = needNumber(b.number);
+    const ex = await existing();
+    if (!ex.u.has(n) && !ex.d.has(n)) throw new Bad("That number is not registered.", 404);
+    const up = { ["Users/" + n]: null, ["dbRef/" + n]: null };
+    if (b.history) { up["DepositRequired/" + n] = null; up["DepositLogs/" + n] = null; }
+    await patch(up);
+    await audit("ADMIN_DELETE", n + (b.history ? " (+history)" : ""));
+    return { ok: true };
+  },
+
+  async "user/bulk"(b) {
+    const nums = needNumbers(b.numbers, 200);
+    const ex = await existing(), up = {};
+    let touched = 0;
+    if (b.action === "status") {
+      if (!STATUSES.includes(b.status)) throw new Bad("Status must be ACTIVE, SUSPENDED or BLOCKED.");
+      for (const n of nums) {
+        if (ex.u.has(n)) up["Users/" + n + "/accountStatus"] = b.status;
+        if (ex.d.has(n)) up["dbRef/" + n + "/accountStatus"] = b.status;
+        if (ex.u.has(n) || ex.d.has(n)) touched++;
+      }
+    } else if (b.action === "delete") {
+      for (const n of nums) {
+        if (!ex.u.has(n) && !ex.d.has(n)) continue;
+        up["Users/" + n] = null; up["dbRef/" + n] = null;
+        if (b.history) { up["DepositRequired/" + n] = null; up["DepositLogs/" + n] = null; }
+        touched++;
+      }
+    } else throw new Bad("Unknown bulk action.");
+    if (!touched) throw new Bad("None of those numbers are registered.", 404);
+    await patch(up);
+    await audit("ADMIN_BULK_" + b.action.toUpperCase(), touched + " users" + (b.status ? " -> " + b.status : ""));
+    return { ok: true, changed: touched };
+  },
+
+  // repairs records the strict Firebase rules cannot work with (missing / wrong "mobile", present in only one node)
+  async "user/repair"(b) {
+    const nums = needNumbers(b.numbers, 20);
+    const up = {}; let fixed = 0;
+    for (const n of nums) {
+      const [u, d] = await Promise.all([fbJson("GET", "Users/" + n), fbJson("GET", "dbRef/" + n)]);
+      const base = u || d;
+      if (!base || typeof base !== "object") continue;
+      const whole = Object.assign({}, base, { mobile: n });
+      let did = false;
+      for (const [node, cur] of [["Users", u], ["dbRef", d]]) {
+        if (!cur) { up[node + "/" + n] = whole; did = true; }
+        else if (cur.mobile !== n) { up[node + "/" + n + "/mobile"] = n; did = true; }
+      }
+      if (did) fixed++;
+    }
+    if (fixed) { await patch(up); await audit("ADMIN_REPAIR", fixed + " records"); }
+    return { ok: true, fixed };
+  },
+
+  async "demo/add"(b) {
+    const nums = needNumbers(b.numbers, 200), up = {};
+    for (const n of nums) { up["DemoAccounts/" + n + "/enabled"] = true; up["DemoAccounts/" + n + "/status"] = null; }
+    await patch(up);
+    await audit("ADMIN_DEMO_ADD", nums.join(",").slice(0, 190));
+    return { ok: true, added: nums.length };
+  },
+  async "demo/toggle"(b) {
+    const n = needNumber(b.number);
+    const up = { ["DemoAccounts/" + n + "/enabled"]: !!b.enabled };
+    if (b.enabled) up["DemoAccounts/" + n + "/status"] = null;
+    await patch(up);
+    await audit("ADMIN_DEMO_" + (b.enabled ? "ON" : "OFF"), n);
+    return { ok: true };
+  },
+  async "demo/delete"(b) {
+    const n = needNumber(b.number);
+    await patch({ ["DemoAccounts/" + n]: null });
+    await audit("ADMIN_DEMO_DELETE", n);
+    return { ok: true };
+  },
+
+  async "deposit/set"(b) {
+    const n = needNumber(b.number);
+    const status = b.status === undefined ? "PENDING" : b.status;
+    if (!["PENDING", "FULFILLED", "CANCELLED"].includes(status)) throw new Bad("Status must be PENDING, FULFILLED or CANCELLED.");
+    const amt = Number(b.requiredAmount);
+    if (!isFinite(amt) || amt <= 0 || amt > 1e9) throw new Bad("Required amount must be more than 0.");
+    let target = null;
+    if (b.targetBalance !== undefined && b.targetBalance !== null && b.targetBalance !== "") {
+      target = Number(b.targetBalance);
+      if (!isFinite(target) || target <= 0 || target > 1e9) throw new Bad("Target balance must be more than 0.");
+    }
+    const p = "DepositRequired/" + n + "/";
+    const up = { [p + "status"]: status, [p + "requiredAmount"]: amt, [p + "targetBalance"]: target };
+    if (status === "PENDING") { up[p + "fulfilledAt"] = null; up[p + "fulfilledBalance"] = null; }
+    await patch(up);
+    await audit("ADMIN_DEPOSIT_" + status, n + " needs " + amt);
+    return { ok: true };
+  },
+  async "deposit/delete"(b) {
+    const n = needNumber(b.number);
+    await patch({ ["DepositRequired/" + n]: null });
+    await audit("ADMIN_DEPOSIT_DELETE", n);
+    return { ok: true };
+  },
+
+  async "config/set"(b) {
+    const up = {};
+    if (b.telegramLink !== undefined) {
+      const s = String(b.telegramLink).trim();
+      if (s && !/^https:\/\/[^\s]{3,290}$/.test(s)) throw new Bad("Telegram link must start with https://");
+      up["Config/telegramLink"] = s || null;
+    }
+    if (b.minDepositDetect !== undefined) {
+      const n = Number(b.minDepositDetect);
+      if (!isFinite(n) || n < 0 || n > 1e9) throw new Bad("Minimum deposit must be a number, 0 or more.");
+      up["Config/minDepositDetect"] = n;
+    }
+    if (!Object.keys(up).length) throw new Bad("Nothing to change.");
+    await patch(up);
+    await audit("ADMIN_CONFIG", Object.keys(up).map((k) => k.split("/")[1]).join(","));
+    return { ok: true };
+  },
+
+  async "logs/clear"(b) {
+    if (b.kind === "audit") { await fbJson("DELETE", "AuditLogs"); await audit("ADMIN_LOGS_CLEARED", "audit"); }
+    else if (b.kind === "deposit") { await fbJson("DELETE", "DepositLogs"); await audit("ADMIN_LOGS_CLEARED", "deposit"); }
+    else throw new Bad("Unknown log type.");
+    return { ok: true };
+  },
+};
+
+function directApi(path, body) {
+  var q = path.indexOf('?'), p = q < 0 ? path : path.slice(0, q), qs = q < 0 ? '' : path.slice(q + 1);
+  return (async function () {
+    if (!D.key) { showLock(''); throw new AuthErr(); }
+    if (p === 'login') return { ok: true };
+    var m = /^data\/([A-Za-z]+)$/.exec(p);
+    if (m) {
+      var node = m[1], query;
+      if (node === 'AuditLogs') {
+        var lim = Math.max(1, Math.min(1000, parseInt(new URLSearchParams(qs).get('limit') || '300', 10) || 300));
+        query = { orderBy: '"$key"', limitToLast: String(lim) };
+      } else if (!READ_NODES[node]) throw new Error('Unknown data: ' + node);
+      return await fbJson('GET', node, undefined, query);
+    }
+    var fn = Object.prototype.hasOwnProperty.call(ACTIONS, p) ? ACTIONS[p] : null;
+    if (!fn) throw new Error('Unknown action: ' + p);
+    return await fn(body && typeof body === 'object' && !Array.isArray(body) ? body : {});
+  })().catch(function (e) {
+    if (e && e.key) { showLock(e.message); throw new AuthErr(); }
+    throw e;
+  });
+}
+
+// ── the key file: read it once, check it, and keep it on this device.
+//    The browser stores it as a locked key (IndexedDB, non-extractable): the page can sign with it, but nobody can copy the key text back out.
+function parseKey(t) {
+  var o; try { o = JSON.parse(String(t).trim()); } catch (e) { throw new Error('That is not the key file. Choose the .json file from Firebase (Project settings, Service accounts, Generate new private key).'); }
+  if (!o || typeof o.client_email !== 'string' || typeof o.private_key !== 'string' || o.private_key.indexOf('BEGIN PRIVATE KEY') < 0) throw new Error('This file is not a service-account key (it needs client_email and private_key).');
+  return { client_email: o.client_email, private_key: o.private_key };
+}
+function cleanDb(v) {
+  v = String(v || '').trim().replace(/\/+$/, ''); if (!v) return DEFAULT_DB;
+  if (!/^https:\/\//i.test(v)) v = 'https://' + v;
+  return /^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*\.(firebaseio\.com|firebasedatabase\.app)$/i.test(v) ? v : '';
+}
+async function signIn(key, email, db) {
+  D.key = key; D.email = email; D.db = db; D.token = ''; D.exp = 0;
+  try { await mintToken(); } catch (e) { D.key = null; throw (e && e.key) ? new Error(e.message) : e; }
+}
+async function connect(sa, db) {
+  var key;
+  try { key = await crypto.subtle.importKey('pkcs8', pemToDer(sa.private_key), { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']); }
+  catch (e) { throw new Error('The key in this file is damaged. Download a fresh key from Firebase.'); }
+  await signIn(key, sa.client_email, db);
+  return key;
+}
+function idbRun(mode, fn) {
+  return new Promise(function (resolve, reject) {
+    var req; try { req = indexedDB.open('fxp', 1); } catch (e) { reject(e); return; }
+    req.onupgradeneeded = function () { req.result.createObjectStore('k'); };
+    req.onerror = function () { reject(req.error || new Error('storage')); };
+    req.onblocked = function () { reject(new Error('storage blocked')); };
+    req.onsuccess = function () {
+      var db = req.result, out;
+      try {
+        var tx = db.transaction('k', mode), rq = fn(tx.objectStore('k'));
+        rq.onsuccess = function () { out = rq.result; };
+        tx.oncomplete = function () { db.close(); resolve(out); };
+        tx.onerror = tx.onabort = function () { db.close(); reject(tx.error || new Error('storage')); };
+      } catch (e) { db.close(); reject(e); }
+    };
+  });
+}
+function loadSaved() { return idbRun('readonly', function (s) { return s.get('main'); }); }
+function storeSaved(rec) { return idbRun('readwrite', function (s) { return s.put(rec, 'main'); }); }
+function forgetSaved() { return idbRun('readwrite', function (s) { return s.delete('main'); }).catch(function () {}); }
+function secureOk(err) {
+  if (window.crypto && crypto.subtle) return true;
+  err.textContent = 'Open this page with https:// (the browser switches encryption off on plain http).'; return false;
+}
+var SAVED = null;                   // the key remembered on this device: { email, db, key }
+
+// ── start: if a key is remembered, open the panel straight away. Otherwise ask for the key file (only the first time).
+function directStart() {
+  mount(h('div', { class: 'lock' }, h('div', { class: 'box' }, h('h1', { text: 'FUN XPro Admin' }), h('p', { text: 'Opening…' }))));
+  var slow = new Promise(function (r) { setTimeout(function () { r(null); }, 3000); });
+  Promise.race([loadSaved().catch(function () { return null; }), slow]).then(function (rec) {
+    if (rec && rec.key && typeof rec.email === 'string') { SAVED = rec; return openSaved(); }
+    directLock('');
+  });
+}
+function openSaved() {
+  return signIn(SAVED.key, SAVED.email, cleanDb(SAVED.db) || DEFAULT_DB).then(function () { return boot(); })
+    .catch(function (e) { if (!(e && e.auth)) directLock((e && e.message) || 'Could not connect.'); });
+}
+function directSignOut() {
+  if (!SAVED) { directLock(''); return; }
+  ask({ title: 'Sign out?', text: 'The key is removed from this device. Next time you will choose the key file again.', confirm: 'Sign out', danger: true })
+    .then(function (a) { if (a.ok) forgetSaved().then(function () { SAVED = null; directLock(''); }); });
+}
+
+// ── key screen (first time only) / retry screen (a remembered key that could not open the panel)
+function directLock(msg) {
+  D.key = null; D.token = ''; D.exp = 0; D.email = ''; S.loaded = false;
+  var err = h('div', { class: 'err', role: 'alert', text: msg || '' });
+  var form;
+  if (SAVED) {
+    var again = h('button', { class: 'btn gold block', type: 'submit', text: 'Try again' });
+    form = h('form', { class: 'box' },
+      h('h1', { text: 'FUN XPro Admin' }), h('p', { text: 'The panel could not be opened with the key saved on this device.' }), err, again,
+      h('button', { class: 'link', type: 'button', text: 'Use a different key', onclick: function () { forgetSaved().then(function () { SAVED = null; directLock(''); }); } }));
+    form.addEventListener('submit', function (e) { e.preventDefault(); err.textContent = ''; again.disabled = true; again.textContent = 'Opening…'; openSaved(); });
+    mount(h('div', { class: 'lock' }, form));
+    return;
+  }
+  var keyObj = null;
+  var info = h('div', { class: 'hint' });
+  var file = h('input', { type: 'file', accept: '.json,application/json,text/plain', class: 'sr', tabindex: '-1', 'aria-hidden': 'true' });
+  var ta = h('textarea', { placeholder: '{ "type": "service_account", ... }', spellcheck: 'false', autocapitalize: 'none', 'aria-label': 'Key text' });
+  var dbIn = h('input', { type: 'text', inputmode: 'url', autocapitalize: 'none', spellcheck: 'false', value: DEFAULT_DB, 'aria-label': 'Database address' });
+  var go2 = h('button', { class: 'btn block', type: 'submit', text: 'Connect' });
+  function useText(t, quiet) {
+    try { keyObj = parseKey(t); info.textContent = '✓ ' + keyObj.client_email; err.textContent = ''; }
+    catch (e) { keyObj = null; info.textContent = ''; if (!quiet) err.textContent = e.message; }
+  }
+  function submitKey() {
+    err.textContent = '';
+    if (!secureOk(err)) return;
+    if (!keyObj && ta.value.trim()) useText(ta.value);
+    if (!keyObj) { err.textContent = err.textContent || 'Choose the key file first.'; return; }
+    var db = cleanDb(dbIn.value);
+    if (!db) { err.textContent = 'The database address should look like https://your-project-default-rtdb.firebaseio.com'; return; }
+    var sa = keyObj, kept = true;
+    go2.disabled = true; go2.textContent = 'Connecting…';
+    connect(sa, db).then(function (key) {
+      var rec = { v: 1, email: sa.client_email, db: db, key: key };
+      return storeSaved(rec).then(function () { SAVED = rec; }, function () { SAVED = null; kept = false; });
+    }).then(function () { keyObj = null; sa = null; ta.value = ''; return boot(); })
+      .then(function () { if (!kept) toast('This browser would not remember the key (private mode?). You will choose the file again next time.', true); })
+      .catch(function (e2) { go2.disabled = false; go2.textContent = 'Connect'; if (!(e2 && e2.auth)) { D.key = null; err.textContent = (e2 && e2.message) || 'Could not connect.'; } });
+  }
+  file.addEventListener('change', function () {
+    var f = file.files && file.files[0]; if (!f) return;
+    if (f.size > 50000) { keyObj = null; info.textContent = ''; err.textContent = 'That does not look like the key file.'; file.value = ''; return; }
+    var rd = new FileReader(); rd.onload = function () { file.value = ''; useText(String(rd.result)); if (keyObj) submitKey(); }; rd.readAsText(f);
+  });
+  ta.addEventListener('input', function () { if (ta.value.trim()) useText(ta.value, true); });
+  form = h('form', { class: 'box' },
+    h('h1', { text: 'FUN XPro Admin' }), h('p', { text: 'Choose your Firebase key file once. After that this page opens straight into the panel.' }),
+    file, h('button', { class: 'btn gold block', type: 'button', text: 'Choose the key file (.json)', onclick: function () { file.click(); } }), info,
+    h('details', { class: 'alt' }, h('summary', { text: 'Or paste the key text' }), ta, go2),
+    h('details', { class: 'alt' }, h('summary', { text: 'Advanced' }), h('label', { class: 'field' }, h('span', { text: 'Database address' }), dbIn)),
+    err);
+  form.addEventListener('submit', function (e) { e.preventDefault(); submitKey(); });
+  mount(h('div', { class: 'lock' }, form));
+}
+
+function apiUrl(path) {
+  if (!PHPAPI) return S.base + '/api/' + path;
+  var q = path.indexOf('?'), p = q < 0 ? path : path.slice(0, q);
+  return 'api.php?p=' + p + (q < 0 ? '' : '&' + path.slice(q + 1));
+}
+function api(path, body) {
+  if (DIRECT) return directApi(path, body);
+  var opt;
+  if (PHPAPI) {   // plain hosting: everything is a POST; the password travels in a header and in the body (some hosts drop custom headers)
+    opt = { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({}, body || {}, { _k: S.secret })) };
+    if (/^[\x20-\x7e]*$/.test(S.secret) && S.secret === S.secret.trim()) opt.headers['X-Admin-Key'] = S.secret;
+  } else {
+    opt = { headers: { 'Authorization': 'Bearer ' + S.secret }, cache: 'no-store' };
+    if (body !== undefined) { opt.method = 'POST'; opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  }
+  return fetch(apiUrl(path), opt).then(function (r) {
+    return r.text().then(function (t) {
+      var j = null, parsed = false; try { j = t ? JSON.parse(t) : null; parsed = true; } catch (e) {}
+      if (r.status === 401 || r.status === 429) { showLock((parsed && j && j.error) || 'Locked'); throw new AuthErr(); }
+      if (!r.ok) throw new Error((j && (j.error && j.error.message || j.error)) || (r.status === 403 ? 'The hosting blocked this request (403).' : 'Request failed (' + r.status + ')'));
+      if (!parsed) throw new Error('The hosting sent a web page instead of data. Reload this page and try again.');
+      return j;
+    });
+  }, function () {
+    throw new Error(HOSTED ? 'Cannot reach the Worker. Check the Worker URL, and that ALLOWED_ORIGIN in the Worker is set to this website.' : 'Cannot reach the server.');
+  });
+}
+function fail(e) { if (e && e.auth) return; toast((e && e.message) || 'Something went wrong', true); }
+
+// ───────────── data shaping ─────────────
+function isOn(v) {            // same on/off rule the app uses for demo numbers
+  if (v === null || v === undefined) return false;
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'object') {
+    var en = v.enabled;
+    if (en !== undefined && en !== null) { var es = String(en).toLowerCase(); if (es === 'false' || es === '0') return false; }
+    var st = String(v.status || '').toUpperCase();
+    return !(st === 'DISABLED' || st === 'BLOCKED' || st === 'INACTIVE');
+  }
+  var t = String(v).trim().toLowerCase(); return !(t === '' || t === 'false' || t === '0');
+}
+function buildUsers(U, D) {
+  var uo = {}, dobj = {}, keys = {}, out = [];
+  entries(U).forEach(function (e) { uo[e[0]] = e[1]; keys[e[0]] = 1; });
+  entries(D).forEach(function (e) { dobj[e[0]] = e[1]; keys[e[0]] = 1; });
+  Object.keys(keys).forEach(function (n) {
+    var u = isObj(uo[n]) ? uo[n] : null, d = isObj(dobj[n]) ? dobj[n] : null, issues = [];
+    if (!u) issues.push(uo[n] === undefined ? 'Missing from Users' : 'Users record is damaged');
+    if (!d) issues.push(dobj[n] === undefined ? 'Missing from dbRef' : 'dbRef record is damaged');
+    [['Users', u], ['dbRef', d]].forEach(function (p) {
+      if (!p[1]) return;
+      if (p[1].mobile === undefined) issues.push('No mobile field in ' + p[0]);
+      else if (typeof p[1].mobile !== 'string') issues.push('mobile in ' + p[0] + ' is a number, it must be text');
+      else if (p[1].mobile !== n) issues.push('mobile in ' + p[0] + ' does not match the number');
+    });
+    var r = Object.assign({}, d || {}, u || {});
+    var st = String(r.accountStatus || 'ACTIVE').toUpperCase();
+    var bal = parseFloat(r.currentBalance !== undefined ? r.currentBalance : r.balance);
+    out.push({ n: n, u: u, d: d, r: r, st: st, bal: isFinite(bal) ? bal : 0, created: Number(r.createdAt) || 0, issues: issues, demo: r.isDemo === true });
+  });
+  return out;
+}
+function statusClass(st) { return st === 'ACTIVE' ? '' : st === 'SUSPENDED' ? 'st-suspended' : st === 'BLOCKED' ? 'st-blocked' : 'st-other'; }
+function statusLabel(st) { return st === 'ACTIVE' ? 'Active' : st === 'SUSPENDED' ? 'Suspended' : st === 'BLOCKED' ? 'Blocked' : st; }
+
+function loadAll() {
+  return Promise.all([api('data/Users'), api('data/dbRef'), api('data/DemoAccounts'), api('data/DepositRequired'), api('data/Config')]).then(function (r) {
+    S.users = buildUsers(r[0], r[1]); S.map = {};
+    S.users.forEach(function (u) { S.map[u.n] = u; });
+    S.demo = entries(r[2]).map(function (e) { return { n: e[0], on: isOn(e[1]), note: isObj(e[1]) ? e[1].note : '' }; })
+      .sort(function (a, b) { return a.n.length - b.n.length || (a.n < b.n ? -1 : 1); });
+    S.dep = entries(r[3]).map(function (e) {
+      var v = isObj(e[1]) ? e[1] : {};
+      return { n: e[0], status: String(v.status || ''), req: v.requiredAmount, target: v.targetBalance, fAt: v.fulfilledAt, fBal: v.fulfilledBalance };
+    }).sort(function (a, b) { return (a.status === 'PENDING' ? 0 : 1) - (b.status === 'PENDING' ? 0 : 1) || (a.n < b.n ? -1 : 1); });
+    S.cfg = isObj(r[4]) ? r[4] : {};
+    S.loaded = true;
+  });
+}
+function reload() {
+  return loadAll().then(function () { S.audit = null; S.depLogs = null; renderTabs(); renderView(); return true; }).catch(function (e) { fail(e); return false; });
+}
+
+// ───────────── modal helpers ─────────────
+function modal(build) {
+  var prev = document.activeElement;
+  var scrim = h('div', { class: 'mscrim' }), box = h('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true' });
+  scrim.appendChild(box); document.body.appendChild(scrim);
+  function close() { scrim.remove(); document.removeEventListener('keydown', esc); if (prev && prev.focus) { try { prev.focus(); } catch (e) {} } }
+  function esc(e) { if (e.key === 'Escape') close(); }
+  scrim.addEventListener('mousedown', function (e) { if (e.target === scrim) close(); });
+  document.addEventListener('keydown', esc);
+  build(box, close);
+  var f = $('input,select,textarea,button.btn', box); if (f && !/gold|danger/.test(f.className || '')) { try { f.focus(); } catch (e) {} }
+  return close;
+}
+// opts: title, text, confirm, danger, type (word to type), check {label,on}
+function ask(opts) {
+  return new Promise(function (resolve) {
+    modal(function (box, close) {
+      var typed = h('input', { type: 'text', autocomplete: 'off', placeholder: opts.type ? 'Type ' + opts.type : '', 'aria-label': 'Confirmation' });
+      var chk = opts.check ? h('input', { type: 'checkbox', checked: !!opts.check.on }) : null;
+      var go = h('button', { class: 'btn ' + (opts.danger ? 'danger solid' : 'gold'), text: opts.confirm || 'Confirm', disabled: !!opts.type });
+      typed.addEventListener('input', function () { go.disabled = typed.value.trim() !== opts.type; });
+      go.addEventListener('click', function () { close(); resolve({ ok: true, check: chk ? chk.checked : false }); });
+      var no = h('button', { class: 'btn', text: 'Cancel', onclick: function () { close(); resolve({ ok: false }); } });
+      add(box, [h('h2', { text: opts.title }), opts.text ? h('p', { text: opts.text }) : null,
+        chk ? h('label', { class: 'check' }, chk, h('span', { text: opts.check.label })) : null,
+        opts.type ? h('label', { class: 'field' }, h('span', { text: 'To confirm, type ' + opts.type }), typed) : null,
+        h('div', { class: 'acts' }, no, go)]);
+    });
+  });
+}
+// fields: [{key,label,type,value,hint,placeholder,area}]
+function formModal(o) {
+  modal(function (box, close) {
+    var inputs = {};
+    var errEl = h('div', { class: 'err', role: 'alert' });
+    var kids = [h('h2', { text: o.title })];
+    if (o.text) kids.push(h('p', { text: o.text }));
+    o.fields.forEach(function (f) {
+      var el;
+      if (f.select) { el = h('select', null, f.select.map(function (s) { return h('option', { value: s[0], text: s[1], selected: s[0] === f.value }); })); }
+      else if (f.area) el = h('textarea', { value: f.value || '', placeholder: f.placeholder || '' });
+      else el = h('input', { type: f.type || 'text', value: f.value === undefined || f.value === null ? '' : String(f.value), placeholder: f.placeholder || '', autocomplete: 'off', inputmode: f.inputmode });
+      inputs[f.key] = el;
+      kids.push(h('label', { class: 'field' }, h('span', { text: f.label }), el, f.hint ? h('small', { text: f.hint }) : null));
+    });
+    var go = h('button', { class: 'btn gold', text: o.submit || 'Save' });
+    go.addEventListener('click', function () {
+      var vals = {}; for (var k in inputs) vals[k] = inputs[k].value;
+      errEl.textContent = ''; go.disabled = true;
+      Promise.resolve(o.onSubmit(vals)).then(function () { close(); }, function (e) { go.disabled = false; if (e && e.auth) { close(); return; } errEl.textContent = (e && e.message) || 'Something went wrong'; });
+    });
+    kids.push(errEl, h('div', { class: 'acts' }, h('button', { class: 'btn', text: 'Cancel', onclick: close }), go));
+    add(box, kids);
+  });
+}
+
+// ───────────── lock screen ─────────────
+function mount(node) { app.textContent = ''; app.appendChild(node); }
+function showLock(msg) {
+  if (DIRECT) return directLock(msg);
+  S.secret = ''; S.loaded = false; clearStored();
+  var pw = h('input', { type: 'password', autocomplete: 'current-password', placeholder: 'Admin password', 'aria-label': 'Admin password' });
+  var wu = HOSTED ? h('input', { type: 'text', inputmode: 'url', autocomplete: 'url', autocapitalize: 'none', spellcheck: 'false', placeholder: 'your-worker.your-name.workers.dev', 'aria-label': 'Worker URL', value: S.base || getBase() }) : null;
+  var rem = h('input', { type: 'checkbox' });
+  var err = h('div', { class: 'err', role: 'alert', text: msg || '' });
+  var go = h('button', { class: 'btn gold block', type: 'submit', text: 'Unlock' });
+  var form = h('form', { class: 'box' },
+    h('h1', { text: 'FUN XPro Admin' }), h('p', { text: 'Enter the admin password to manage users, demo numbers and deposits.' }),
+    h('input', { type: 'text', class: 'sr', autocomplete: 'username', value: 'admin', tabindex: '-1', 'aria-hidden': 'true' }),
+    wu ? h('label', { class: 'field' }, h('span', { text: 'Worker URL' }), wu) : null,
+    h('label', { class: 'field' }, h('span', { text: 'Password' }), pw),
+    h('label', { class: 'check' }, rem, h('span', { text: 'Remember on this device' })),
+    err, go);
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (PHPAPI && location.protocol === 'http:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { err.textContent = 'This page is open over http://, so your password would travel unprotected. Open it with https:// instead.'; return; }
+    if (/[^\x20-\x7e]/.test(pw.value)) { err.textContent = 'The password should use only English letters, numbers and symbols.'; return; }
+    if (HOSTED) {
+      var b = cleanBase(wu.value);
+      if (!b) { err.textContent = 'Enter the Worker URL, for example your-worker.your-name.workers.dev'; return; }
+      S.base = b; wu.value = b;
+    }
+    if (!pw.value) { err.textContent = 'Enter the password.'; return; }
+    S.secret = pw.value; go.disabled = true; err.textContent = '';
+    api('login', {}).then(function () { if (HOSTED) setBase(S.base); setStored(S.secret, rem.checked); return boot(); })
+      .catch(function (e2) { go.disabled = false; if (!(e2 && e2.auth)) err.textContent = (e2 && e2.message) || 'Could not connect.'; });
+  });
+  mount(h('div', { class: 'lock' }, form));
+  (wu && !wu.value ? wu : pw).focus();
+}
+
+// ───────────── shell ─────────────
+var TABS = [['users', 'Users'], ['demo', 'Demo'], ['dep', 'Deposits'], ['logs', 'Logs'], ['cfg', 'Config'], ['tools', 'Tools']];
+function boot() {
+  return loadAll().then(function () {
+    tabsEl = h('div', { class: 'tabs', role: 'tablist' });
+    view = h('main', { class: 'view' });
+    detailEl = null; bulkEl = h('div'); scrimEl = null;
+    mount(h('div', { class: 'shell' },
+      h('header', { class: 'top' },
+        h('div', { class: 'brand' }, h('b', { text: 'FUN XPro Admin' }), h('span', { text: 'Users, demo numbers, deposits' })),
+        h('button', { class: 'btn sm', text: 'Refresh', onclick: function () { reload().then(function (done) { if (done) toast('Updated'); }); } }),
+        h('button', { class: 'btn sm', text: DIRECT ? 'Sign out' : 'Lock', onclick: function () { if (DIRECT) directSignOut(); else showLock(''); } })),
+      tabsEl, view, bulkEl));
+    renderTabs(); renderView();
+  }).catch(function (e) { if (e && e.auth) return; showLock((e && e.message) || 'Could not load data'); });
+}
+function renderTabs() {
+  var counts = { users: S.users.length, demo: S.demo.length, dep: S.dep.filter(function (d) { return d.status === 'PENDING'; }).length };
+  tabsEl.textContent = '';
+  TABS.forEach(function (t) {
+    tabsEl.appendChild(h('button', { class: 'tab', role: 'tab', 'aria-selected': S.tab === t[0] ? 'true' : 'false',
+      onclick: function () { S.tab = t[0]; S.open = null; S.selMode = false; S.sel = {}; renderTabs(); renderView(); } },
+      t[1], counts[t[0]] !== undefined ? h('small', { text: String(counts[t[0]]) }) : null));
+  });
+}
+function renderView() {
+  view.textContent = ''; detailEl = null; scrimEl = null; listRefresh = null;
+  ({ users: viewUsers, demo: viewDemo, dep: viewDep, logs: viewLogs, cfg: viewCfg, tools: viewTools })[S.tab](view);
+  renderBulk();
+}
+
+// ───────────── USERS ─────────────
+var FILTERS = [['all', 'All'], ['active', 'Active'], ['suspended', 'Suspended'], ['blocked', 'Blocked'], ['demo', 'Demo'], ['fix', 'Needs fix']];
+function matches(u, f) {
+  return f === 'all' || (f === 'active' && u.st === 'ACTIVE') || (f === 'suspended' && u.st === 'SUSPENDED') ||
+    (f === 'blocked' && u.st === 'BLOCKED') || (f === 'demo' && u.demo) || (f === 'fix' && u.issues.length > 0);
+}
+function visibleUsers() {
+  var q = S.q.trim().toLowerCase();
+  var list = S.users.filter(function (u) {
+    if (!matches(u, S.filter)) return false;
+    if (!q) return true;
+    var r = u.r;
+    return (u.n + ' ' + (r.code || '') + ' ' + (r.uid || '') + ' ' + (r.brand || '') + ' ' + (r.deviceId || '') + ' ' + (r.note || '')).toLowerCase().indexOf(q) >= 0;
+  });
+  var s = S.sort;
+  list.sort(function (a, b) {
+    if (s === 'old') return a.created - b.created;
+    if (s === 'bal') return b.bal - a.bal;
+    if (s === 'num') return a.n.length - b.n.length || (a.n < b.n ? -1 : 1);
+    return b.created - a.created || (a.n < b.n ? -1 : 1);
+  });
+  return list;
+}
+function viewUsers(root) {
+  var chips = h('div', { class: 'chips', role: 'group', 'aria-label': 'Filter users' });
+  var search = h('input', { type: 'search', placeholder: 'Search number, password, UID, device', autocomplete: 'off', inputmode: 'search', value: S.q, 'aria-label': 'Search users',
+    oninput: function () { S.q = this.value; S.shown = 60; listRefresh(); } });
+  var sort = h('select', { 'aria-label': 'Sort users', onchange: function () { S.sort = this.value; S.shown = 60; listRefresh(); } },
+    [['new', 'Newest'], ['old', 'Oldest'], ['bal', 'Balance'], ['num', 'Number']].map(function (o) { return h('option', { value: o[0], text: o[1], selected: S.sort === o[0] }); }));
+  var selBtn = h('button', { class: 'btn', onclick: function () { S.selMode = !S.selMode; S.sel = {}; selBtn.textContent = S.selMode ? 'Done' : 'Select'; listRefresh(); renderBulk(); } }, S.selMode ? 'Done' : 'Select');
+  var sub = h('div', { class: 'sub' });
+  var list = h('div', { class: 'list' });
+  var moreWrap = h('div');
+  detailEl = h('aside', { class: 'detail empty-d', 'aria-label': 'User details' });
+  scrimEl = h('div', { class: 'scrim', onclick: closeDetail }); scrimEl.hidden = true;
+
+  listRefresh = function () {
+    var all = visibleUsers();
+    chips.textContent = '';
+    FILTERS.forEach(function (f) {
+      var c = S.users.filter(function (u) { return matches(u, f[0]); }).length;
+      chips.appendChild(h('button', { class: 'chip ' + (f[0] === 'blocked' ? 'bad' : f[0] === 'suspended' || f[0] === 'fix' ? 'warn' : ''), 'aria-pressed': S.filter === f[0] ? 'true' : 'false',
+        onclick: function () { S.filter = f[0]; S.shown = 60; listRefresh(); } }, f[1], h('b', { text: String(c) })));
+    });
+    sub.textContent = '';
+    sub.appendChild(h('span', { text: all.length === S.users.length ? S.users.length + ' users' : all.length + ' of ' + S.users.length + ' users' }));
+    sub.appendChild(h('button', { class: 'link', text: 'Export CSV', onclick: function () { exportCsv(all); } }));
+    list.textContent = '';
+    if (!all.length) {
+      list.appendChild(h('div', { class: 'empty' }, h('b', { text: S.users.length ? 'No users match' : 'No users yet' }),
+        S.users.length ? 'Try a different search or filter.' : 'Users appear here after they register in the app, or add one with Add user.'));
+    }
+    all.slice(0, S.shown).forEach(function (u) { list.appendChild(userRow(u)); });
+    moreWrap.textContent = '';
+    if (all.length > S.shown) moreWrap.appendChild(h('button', { class: 'btn more', text: 'Show more (' + (all.length - S.shown) + ' left)', onclick: function () { S.shown += 60; listRefresh(); } }));
+    S.vis = all;
+    renderBulk();
+  };
+
+  add(root, h('div', { class: 'cols' },
+    h('div', { class: 'left' }, chips,
+      h('div', { class: 'bar' }, h('div', { class: 'grow' }, search), sort),
+      h('div', { class: 'bar' }, selBtn, h('button', { class: 'btn gold', text: 'Add user', onclick: addUserModal })),
+      sub, list, moreWrap),
+    detailEl), scrimEl);
+  listRefresh();
+  renderDetail();
+}
+function userRow(u) {
+  var picked = !!S.sel[u.n];
+  var meta = [u.r.brand ? String(u.r.brand) : '', u.created ? fdate(u.created) : 'No join date'].filter(Boolean).join('  ·  ');
+  var b = h('button', { class: 'row ' + statusClass(u.st) + (S.selMode ? ' selmode' : ''), 'aria-current': S.open === u.n && !S.selMode ? 'true' : null,
+    'aria-label': u.n + ', ' + statusLabel(u.st) + ', ' + rs(u.bal),
+    onclick: function () {
+      if (S.selMode) { if (S.sel[u.n]) delete S.sel[u.n]; else S.sel[u.n] = 1; listRefresh(); return; }
+      openDetail(u.n);
+    } },
+    h('span', { class: 'rail' }),
+    S.selMode ? h('span', { class: 'pick' + (picked ? ' on' : '') }) : null,
+    h('span', { class: 'rmain' },
+      h('span', { class: 'n' }, h('span', { class: 'num', text: u.n }), u.demo ? h('span', { class: 'tag demo', text: 'DEMO' }) : null, u.issues.length ? h('span', { class: 'tag fix', text: 'FIX' }) : null),
+      h('span', { class: 'meta', text: meta })),
+    h('span', { class: 'rside' }, h('span', { class: 'bal', text: rs(u.bal) }), h('span', { class: 'stl', text: statusLabel(u.st) })));
+  return b;
+}
+function openDetail(n) { S.open = n; renderDetail(); if (listRefresh) listRefresh(); }
+function closeDetail() { S.open = null; renderDetail(); if (listRefresh) listRefresh(); }
+
+function kv(rows) {
+  var dl = h('dl', { class: 'kv' });
+  rows.forEach(function (r) { if (!r) return; dl.appendChild(h('dt', { text: r[0] })); dl.appendChild(r[1] instanceof Node ? r[1] : h('dd', { text: r[1] })); });
+  return dl;
+}
+function ddLine(text, actions, mono) {
+  return h('dd', { class: 'line' }, h('span', { class: mono ? 'mono' : '', text: text }), actions || null);
+}
+function renderDetail() {
+  if (!detailEl) return;
+  var u = S.open ? S.map[S.open] : null;
+  detailEl.textContent = '';
+  if (!u) { detailEl.className = 'detail empty-d'; detailEl.appendChild(document.createTextNode('Pick a user to see everything about them.')); if (scrimEl) scrimEl.hidden = true; return; }
+  detailEl.className = 'detail'; if (scrimEl) scrimEl.hidden = false;
+  var r = u.r, n = u.n, pwShown = false;
+
+  var pwSpan = h('span', { class: 'mono', text: r.code ? '••••••••' : 'Not saved' });
+  var pwToggle = r.code ? h('button', { class: 'link', text: 'Show', onclick: function () { pwShown = !pwShown; pwSpan.textContent = pwShown ? String(r.code) : '••••••••'; this.textContent = pwShown ? 'Hide' : 'Show'; } }) : null;
+  var pwCopy = r.code ? h('button', { class: 'link', text: 'Copy', onclick: function () { copy(String(r.code), 'Password copied'); } }) : null;
+
+  var seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Account status' }, [['ACTIVE', 'Active', 'a'], ['SUSPENDED', 'Suspended', 's'], ['BLOCKED', 'Blocked', 'b']].map(function (s) {
+    return h('button', { class: s[2], text: s[1], 'aria-pressed': u.st === s[0] ? 'true' : 'false', onclick: function () { if (u.st !== s[0]) setStatus([n], s[0]); } });
+  }));
+
+  var fix = u.issues.length ? h('div', { class: 'warnbox' }, h('b', { text: 'This record needs a fix' }),
+    h('div', { text: u.issues.join('. ') + '.' }),
+    h('button', { class: 'btn sm', text: 'Fix now', onclick: function () { repair([n]); } })) : null;
+
+  var tok = r.token ? String(r.token) : '';
+  var details = kv([
+    ['Balance', rs(u.bal)],
+    ['Password', h('dd', { class: 'line' }, pwSpan, h('span', null, pwToggle, pwCopy))],
+    ['UID', r.uid ? ddLine(String(r.uid), h('button', { class: 'link', text: 'Copy', onclick: function () { copy(String(r.uid), 'UID copied'); } }), true) : 'Not captured yet'],
+    ['Device', [r.brand, r.deviceId].filter(Boolean).join(' / ') || '—'],
+    ['Battery', r.battery !== undefined ? String(r.battery) : '—'],
+    ['Last seen', r.time ? String(r.time) : '—'],
+    ['Joined', fdate(u.created)],
+    ['Logins', r.loginCount !== undefined ? String(r.loginCount) : '—'],
+    ['Push token', tok ? ddLine(tok.slice(0, 14) + '…', h('button', { class: 'link', text: 'Copy', onclick: function () { copy(tok, 'Token copied'); } }), true) : '—'],
+    u.demo ? ['Demo login', r.lastDemoLoginAt ? fdate(r.lastDemoLoginAt) : 'Yes'] : null,
+    ['Stored in', (u.u ? 'Users' : '') + (u.u && u.d ? ' + ' : '') + (u.d ? 'dbRef' : '')],
+    r.note ? ['Note', String(r.note)] : null
+  ]);
+
+  var f = {
+    balance: h('input', { type: 'text', inputmode: 'decimal', value: String(u.bal), autocomplete: 'off' }),
+    code: h('input', { type: 'text', value: r.code === undefined ? '' : String(r.code), autocomplete: 'off', placeholder: 'No password saved' }),
+    uid: h('input', { type: 'text', value: r.uid === undefined ? '' : String(r.uid), autocomplete: 'off', placeholder: 'No UID' }),
+    note: h('input', { type: 'text', value: r.note === undefined ? '' : String(r.note), autocomplete: 'off', placeholder: 'Only you can see this' })
+  };
+  var orig = { balance: String(u.bal), code: r.code === undefined ? '' : String(r.code), uid: r.uid === undefined ? '' : String(r.uid), note: r.note === undefined ? '' : String(r.note) };
+  var save = h('button', { class: 'btn gold block', text: 'Save changes', disabled: true });
+  function dirty() { var d = false; for (var k in f) if (f[k].value !== orig[k]) d = true; save.disabled = !d; }
+  for (var k in f) f[k].addEventListener('input', dirty);
+  save.addEventListener('click', function () {
+    var fields = {}; for (var k2 in f) if (f[k2].value !== orig[k2]) fields[k2] = f[k2].value;
+    save.disabled = true;
+    api('user/update', { number: n, fields: fields }).then(function () { toast('Saved'); return reload(); }).catch(function (e) { save.disabled = false; fail(e); });
+  });
+  function lab(t, el) { return h('label', { class: 'field' }, h('span', { text: t }), el); }
+
+  add(detailEl, [
+    h('div', { class: 'dhead' }, h('div', { class: 'num', text: n }),
+      h('button', { class: 'btn sm', text: 'Copy', onclick: function () { copy(n, 'Number copied'); } }),
+      h('button', { class: 'x', 'aria-label': 'Close details', text: '×', onclick: closeDetail })),
+    fix, seg,
+    h('div', { class: 'sec' }, h('h3', { text: 'Details' }), details),
+    h('div', { class: 'sec' }, h('h3', { text: 'Edit' }),
+      lab('Balance (rupees)', f.balance),
+      h('p', { class: 'hint', text: 'Balance is a copy of the wallet on the site. The app overwrites it whenever this user opens the app.' }),
+      lab('Password', f.code), lab('UID', f.uid), lab('Note', f.note), save),
+    h('div', { class: 'sec' }, h('h3', { text: 'Danger zone' }),
+      h('button', { class: 'btn danger block', text: 'Delete this user', onclick: function () { deleteUsers([n]); } }))
+  ]);
+}
+
+function setStatus(nums, st) {
+  var p = nums.length === 1 ? api('user/status', { number: nums[0], status: st }) : chunked(nums, 200, function (c) { return api('user/bulk', { numbers: c, action: 'status', status: st }); });
+  return p.then(function () { toast(nums.length === 1 ? nums[0] + ' is now ' + statusLabel(st).toLowerCase() : nums.length + ' users set to ' + statusLabel(st).toLowerCase()); return reload(); }).catch(fail);
+}
+function chunked(arr, size, fn) {
+  var i = 0;
+  return (function next() { if (i >= arr.length) return Promise.resolve(); var c = arr.slice(i, i + size); i += size; return fn(c).then(next); })();
+}
+function deleteUsers(nums) {
+  var one = nums.length === 1;
+  ask({ title: one ? 'Delete ' + nums[0] + '?' : 'Delete ' + nums.length + ' users?',
+    text: 'This removes the account from the app database. The person can register again, but starts fresh with zero balance. This cannot be undone. Download a backup first if unsure.',
+    check: { label: 'Also delete their deposit requirement and deposit logs', on: true },
+    type: one ? nums[0].slice(-4) : 'DELETE', confirm: one ? 'Delete user' : 'Delete ' + nums.length + ' users', danger: true
+  }).then(function (a) {
+    if (!a.ok) return;
+    var p = one ? api('user/delete', { number: nums[0], history: a.check }) : chunked(nums, 200, function (c) { return api('user/bulk', { numbers: c, action: 'delete', history: a.check }); });
+    p.then(function () { toast(one ? 'Deleted ' + nums[0] : 'Deleted ' + nums.length + ' users'); S.open = null; S.sel = {}; return reload(); }).catch(fail);
+  });
+}
+function repair(nums) {
+  var done = 0;
+  return chunked(nums, 20, function (c) { return api('user/repair', { numbers: c }).then(function (r) { done += r.fixed || 0; }); })
+    .then(function () { toast(done ? 'Fixed ' + done + (done === 1 ? ' record' : ' records') : 'Nothing needed fixing'); return reload(); }).catch(fail);
+}
+function addUserModal() {
+  formModal({ title: 'Add user', text: 'Pre-register a number so it can log in to the app. They start with zero balance.',
+    fields: [{ key: 'number', label: 'Mobile number', inputmode: 'numeric', placeholder: 'e.g. 9876543210', hint: '2 to 20 digits' }, { key: 'code', label: 'Password (optional)', placeholder: 'Saved for your reference' }],
+    submit: 'Add user',
+    onSubmit: function (v) { return api('user/create', { number: v.number.trim(), code: v.code }).then(function () { toast('Added ' + v.number.trim()); S.q = ''; S.filter = 'all'; return reload(); }); } });
+}
+function csvCell(v) {
+  var s = v === undefined || v === null ? '' : String(v);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function download(name, text, type) {
+  var a = h('a', { href: URL.createObjectURL(new Blob([text], { type: type })), download: name });
+  document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function exportCsv(list) {
+  var cols = ['number', 'status', 'balance', 'password', 'uid', 'brand', 'deviceId', 'battery', 'joined', 'logins', 'note'];
+  var lines = [cols.join(',')];
+  list.forEach(function (u) {
+    var r = u.r;
+    lines.push([u.n, u.st, u.bal, r.code, r.uid, r.brand, r.deviceId, r.battery, u.created ? new Date(u.created).toISOString() : '', r.loginCount, r.note].map(csvCell).join(','));
+  });
+  download('users-' + new Date().toISOString().slice(0, 10) + '.csv', lines.join('\n'), 'text/csv');
+  toast('Exported ' + list.length + ' users');
+}
+function renderBulk() {
+  if (!bulkEl) return;
+  bulkEl.textContent = '';
+  if (S.tab !== 'users' || !S.selMode) return;
+  var nums = Object.keys(S.sel), none = !nums.length;
+  var vis = S.vis || [];
+  add(bulkEl, h('div', { class: 'bulk' },
+    h('span', { class: 'cnt', text: nums.length + ' selected' }),
+    h('button', { class: 'btn sm', text: nums.length === vis.length && vis.length ? 'Clear' : 'Select all', onclick: function () { if (nums.length === vis.length) S.sel = {}; else { S.sel = {}; vis.forEach(function (u) { S.sel[u.n] = 1; }); } listRefresh(); } }),
+    h('button', { class: 'btn sm', text: 'Activate', disabled: none, onclick: function () { setStatus(nums, 'ACTIVE'); } }),
+    h('button', { class: 'btn sm', text: 'Suspend', disabled: none, onclick: function () { setStatus(nums, 'SUSPENDED'); } }),
+    h('button', { class: 'btn sm', text: 'Block', disabled: none, onclick: function () { setStatus(nums, 'BLOCKED'); } }),
+    h('button', { class: 'btn sm', text: 'Export', disabled: none, onclick: function () { exportCsv(S.users.filter(function (u) { return S.sel[u.n]; })); } }),
+    h('button', { class: 'btn sm danger', text: 'Delete', disabled: none, onclick: function () { deleteUsers(nums); } })));
+}
+
+// ───────────── DEMO ─────────────
+function viewDemo(root) {
+  var box = h('textarea', { placeholder: '12345\n11111, 22222', 'aria-label': 'Demo numbers' });
+  var list = h('div');
+  function paint() {
+    list.textContent = '';
+    if (!S.demo.length) list.appendChild(h('div', { class: 'empty' }, h('b', { text: 'No demo numbers' }), 'Add a number above. It will log in without registering.'));
+    S.demo.forEach(function (d) {
+      list.appendChild(h('div', { class: 'line-row' },
+        h('div', { class: 'grow' }, h('span', { class: 'num', text: d.n }), d.note ? h('div', { class: 't', text: String(d.note) }) : null),
+        h('span', { class: 'pill ' + (d.on ? 'on' : ''), text: d.on ? 'On' : 'Off' }),
+        h('button', { class: 'btn sm sw', text: d.on ? 'Turn off' : 'Turn on', onclick: function () { api('demo/toggle', { number: d.n, enabled: !d.on }).then(function () { toast(d.n + (d.on ? ' turned off' : ' turned on')); return reload(); }).catch(fail); } }),
+        h('button', { class: 'btn sm danger', text: 'Delete', onclick: function () {
+          ask({ title: 'Delete demo number ' + d.n + '?', confirm: 'Delete', danger: true }).then(function (a) { if (a.ok) api('demo/delete', { number: d.n }).then(function () { toast('Deleted ' + d.n); return reload(); }).catch(fail); });
+        } })));
+    });
+  }
+  add(root, [
+    h('div', { class: 'card' }, h('h2', { text: 'Add demo numbers' }),
+      h('p', { text: 'A demo number logs in directly: no registration check and no "not registered" popup. 2 to 20 digits. Separate several with commas, spaces or new lines.' }),
+      h('label', { class: 'field' }, box),
+      h('button', { class: 'btn gold', text: 'Add', onclick: function () {
+        var parts = box.value.split(/[\s,;]+/).filter(Boolean);
+        if (!parts.length) { toast('Enter a number first', true); return; }
+        var good = parts.filter(function (p) { return /^\d{2,20}$/.test(p); }), badp = parts.filter(function (p) { return !/^\d{2,20}$/.test(p); });
+        if (!good.length) { toast('Only digits, 2 to 20 long. Skipped: ' + badp.join(', '), true); return; }
+        api('demo/add', { numbers: good }).then(function () { toast('Added ' + good.length + (badp.length ? ', skipped ' + badp.length + ' invalid' : '')); return reload(); }).catch(fail);
+      } })),
+    h('div', { class: 'card' }, h('h2', { text: S.demo.length + (S.demo.length === 1 ? ' demo number' : ' demo numbers') }), list)
+  ]);
+  paint();
+}
+
+// ───────────── DEPOSITS ─────────────
+function depForm(d) {
+  var edit = !!d;
+  formModal({ title: edit ? 'Deposit requirement for ' + d.n : 'New deposit requirement',
+    text: 'While PENDING, the user sees a Deposit Required popup on WinGo until their balance reaches the target.',
+    fields: [
+      edit ? null : { key: 'number', label: 'Mobile number', inputmode: 'numeric' },
+      { key: 'requiredAmount', label: 'Amount to deposit (rupees)', inputmode: 'decimal', value: edit ? d.req : '' },
+      { key: 'targetBalance', label: 'Target balance (optional)', inputmode: 'decimal', value: edit && d.target !== undefined && d.target !== null ? d.target : '', hint: 'Leave empty to use the amount as the target.' },
+      { key: 'status', label: 'Status', select: [['PENDING', 'Pending (show popup)'], ['FULFILLED', 'Fulfilled'], ['CANCELLED', 'Cancelled']], value: edit && d.status ? d.status : 'PENDING' }
+    ].filter(Boolean),
+    submit: 'Save',
+    onSubmit: function (v) {
+      return api('deposit/set', { number: edit ? d.n : v.number.trim(), requiredAmount: v.requiredAmount, targetBalance: v.targetBalance, status: v.status }).then(function () { toast('Saved'); return reload(); });
+    } });
+}
+function viewDep(root) {
+  var list = h('div');
+  if (!S.dep.length) list.appendChild(h('div', { class: 'empty' }, h('b', { text: 'No deposit requirements' }), 'Create one to ask a user to deposit before they continue on WinGo.'));
+  S.dep.forEach(function (d) {
+    var pill = d.status === 'PENDING' ? 'warn' : d.status === 'FULFILLED' ? 'on' : '';
+    list.appendChild(h('div', { class: 'line-row' },
+      h('div', { class: 'grow' }, h('span', { class: 'num', text: d.n }),
+        h('div', { class: 't', text: 'Deposit ' + rs(d.req) + (d.target ? '  ·  target ' + rs(d.target) : '') + (d.fAt ? '  ·  done ' + fdate(d.fAt) : '') })),
+      h('span', { class: 'pill ' + pill, text: d.status || 'Unknown' }),
+      h('button', { class: 'btn sm', text: 'Edit', onclick: function () { depForm(d); } }),
+      h('button', { class: 'btn sm danger', text: 'Delete', onclick: function () {
+        ask({ title: 'Delete requirement for ' + d.n + '?', confirm: 'Delete', danger: true }).then(function (a) { if (a.ok) api('deposit/delete', { number: d.n }).then(function () { toast('Deleted'); return reload(); }).catch(fail); });
+      } })));
+  });
+  add(root, h('div', { class: 'card' },
+    h('div', { class: 'line-row' }, h('div', { class: 'grow' }, h('h2', { text: 'Deposit requirements' })), h('button', { class: 'btn gold sm', text: 'New requirement', onclick: function () { depForm(null); } })),
+    list));
+}
+
+// ───────────── LOGS ─────────────
+function viewLogs(root) {
+  var out = h('div'), q = h('input', { type: 'search', placeholder: 'Filter logs', value: S.logQ, 'aria-label': 'Filter logs', oninput: function () { S.logQ = this.value; paint(); } });
+  var seg = h('div', { class: 'seg2', role: 'group' }, [['audit', 'Activity'], ['deposit', 'Deposits']].map(function (k) {
+    return h('button', { text: k[1], 'aria-pressed': S.logKind === k[0] ? 'true' : 'false', onclick: function () { S.logKind = k[0]; S.logQ = ''; renderView(); } });
+  }));
+  var clear = h('button', { class: 'btn sm danger', text: 'Clear all', onclick: function () {
+    ask({ title: 'Clear all ' + (S.logKind === 'audit' ? 'activity' : 'deposit') + ' logs?', text: 'This cannot be undone.', confirm: 'Clear logs', danger: true }).then(function (a) {
+      if (a.ok) api('logs/clear', { kind: S.logKind }).then(function () { toast('Logs cleared'); S.audit = null; S.depLogs = null; renderView(); }).catch(fail);
+    });
+  } });
+  function paint() {
+    var f = S.logQ.trim().toLowerCase(); out.textContent = '';
+    if (S.logKind === 'audit') {
+      var rows = (S.audit || []).filter(function (l) { return !f || (l.action + ' ' + l.target + ' ' + l.actor).toLowerCase().indexOf(f) >= 0; });
+      if (!rows.length) out.appendChild(h('div', { class: 'empty' }, h('b', { text: 'No activity' }), 'Logins, deposits and admin actions show up here.'));
+      rows.slice(0, 200).forEach(function (l) {
+        out.appendChild(h('div', { class: 'logline' }, h('span', { class: 'a', text: l.action }), '  ', h('span', { text: l.target }),
+          h('span', { class: 't', text: (l.actor || '') + '  ·  ' + (l.ts ? fdate(l.ts) + '  ·  ' + ago(l.ts) : '') })));
+      });
+    } else {
+      var d = (S.depLogs || []).filter(function (l) { return !f || (l.n + ' ' + l.source).toLowerCase().indexOf(f) >= 0; });
+      if (!d.length) out.appendChild(h('div', { class: 'empty' }, h('b', { text: 'No deposits detected' }), 'The app logs a deposit when a wallet jumps by more than the minimum in Config.'));
+      d.slice(0, 200).forEach(function (l) {
+        out.appendChild(h('div', { class: 'logline' }, h('span', { class: 'a', text: '+' + rs(l.amount) }), '  ', h('span', { class: 'num', text: l.n }),
+          h('span', { class: 't', text: rs(l.prev) + ' to ' + rs(l.next) + '  ·  ' + fdate(l.ts) + '  ·  ' + (l.source || '') })));
+      });
+    }
+  }
+  add(root, h('div', { class: 'card' }, h('div', { class: 'bar' }, seg, h('div', { class: 'grow' }), clear), h('div', { class: 'bar' }, h('div', { class: 'grow' }, q)), out));
+  if (S.logKind === 'audit') {
+    if (S.audit) paint(); else { out.textContent = 'Loading…';
+      api('data/AuditLogs?limit=300').then(function (r) {
+        S.audit = entries(r).map(function (e) { var v = isObj(e[1]) ? e[1] : {}; return { action: String(v.action || ''), target: String(v.target === undefined ? '' : v.target), actor: String(v.actor || ''), ts: Number(v.timestamp) || 0 }; })
+          .sort(function (a, b) { return b.ts - a.ts; });
+        if (S.tab === 'logs') paint();
+      }).catch(fail); }
+  } else {
+    if (S.depLogs) paint(); else { out.textContent = 'Loading…';
+      api('data/DepositLogs').then(function (r) {
+        var all = [];
+        entries(r).forEach(function (u) { entries(u[1]).forEach(function (e) { var v = isObj(e[1]) ? e[1] : {}; all.push({ n: u[0], amount: v.amount, prev: v.prevBalance, next: v.newBalance, ts: Number(v.detectedAt) || 0, source: String(v.source || '') }); }); });
+        S.depLogs = all.sort(function (a, b) { return b.ts - a.ts; });
+        if (S.tab === 'logs') paint();
+      }).catch(fail); }
+  }
+}
+
+// ───────────── CONFIG ─────────────
+function viewCfg(root) {
+  var tg = h('input', { type: 'url', value: S.cfg.telegramLink === undefined ? '' : String(S.cfg.telegramLink), placeholder: 'https://t.me/yourchannel', autocomplete: 'off' });
+  var md = h('input', { type: 'text', inputmode: 'decimal', value: S.cfg.minDepositDetect === undefined ? '' : String(S.cfg.minDepositDetect), placeholder: '50', autocomplete: 'off' });
+  var others = Object.keys(S.cfg).filter(function (k) { return k !== 'telegramLink' && k !== 'minDepositDetect'; });
+  add(root, h('div', { class: 'card' }, h('h2', { text: 'App settings' }), h('p', { text: 'The app reads these when it needs them.' }),
+    h('label', { class: 'field' }, h('span', { text: 'Telegram link' }), tg),
+    h('label', { class: 'field' }, h('span', { text: 'Minimum deposit to log (rupees)' }), md, h('small', { text: 'A wallet jump smaller than this is treated as a win, not a deposit.' })),
+    h('button', { class: 'btn gold', text: 'Save settings', onclick: function () {
+      var body = { telegramLink: tg.value };
+      if (md.value.trim() !== '') body.minDepositDetect = md.value.trim();
+      api('config/set', body).then(function () { toast('Settings saved'); return reload(); }).catch(fail);
+    } })),
+    others.length ? h('div', { class: 'card' }, h('h2', { text: 'Other keys in Config' }), h('p', { text: 'Read only here.' }),
+      kv(others.map(function (k) { return [k, typeof S.cfg[k] === 'object' ? JSON.stringify(S.cfg[k]) : String(S.cfg[k])]; }))) : null);
+}
+
+// ───────────── TOOLS ─────────────
+function viewTools(root) {
+  var bad = S.users.filter(function (u) { return u.issues.length; });
+  var prog = h('div', { class: 'hint' });
+  var totalBal = S.users.reduce(function (a, u) { return a + u.bal; }, 0);
+  add(root, [
+    h('div', { class: 'card' }, h('h2', { text: 'Overview' }),
+      h('div', { class: 'stat' },
+        h('div', null, h('b', { text: String(S.users.length) }), h('span', { text: 'users' })),
+        h('div', null, h('b', { text: String(S.users.filter(function (u) { return u.st === 'ACTIVE'; }).length) }), h('span', { text: 'active' })),
+        h('div', null, h('b', { text: String(S.users.filter(function (u) { return u.st !== 'ACTIVE'; }).length) }), h('span', { text: 'not active' })),
+        h('div', null, h('b', { text: rs(totalBal) }), h('span', { text: 'total balance (copy)' })))),
+    h('div', { class: 'card' }, h('h2', { text: 'Backup' }),
+      h('p', { text: 'Downloads users, demo numbers, deposit requirements, settings and recent logs as one JSON file. Keep it private: it contains passwords.' }),
+      h('button', { class: 'btn gold', text: 'Download backup', onclick: function () {
+        var names = ['Users', 'dbRef', 'DemoAccounts', 'DepositRequired', 'DepositLogs', 'Config', 'AuditLogs'];
+        Promise.all(names.map(function (n) { return api('data/' + n + (n === 'AuditLogs' ? '?limit=1000' : '')); })).then(function (r) {
+          var data = {}; names.forEach(function (n, i) { data[n] = r[i]; });
+          download('funxpro-backup-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-') + '.json', JSON.stringify({ exportedAt: new Date().toISOString(), data: data }, null, 2), 'application/json');
+          toast('Backup downloaded');
+        }).catch(fail);
+      } })),
+    h('div', { class: 'card' }, h('h2', { text: 'Record check' }),
+      h('p', { text: bad.length ? bad.length + ' record' + (bad.length === 1 ? '' : 's') + ' can break login or balance sync (missing mobile field, or stored in only one place).' : 'All records look good.' }),
+      bad.slice(0, 8).map(function (u) { return h('div', { class: 'line-row' }, h('div', { class: 'grow' }, h('span', { class: 'num', text: u.n }), h('div', { class: 't', text: u.issues.join('. ') })),
+        h('button', { class: 'btn sm', text: 'Open', onclick: function () { S.tab = 'users'; S.filter = 'all'; S.q = u.n; S.open = u.n; renderTabs(); renderView(); } })); }),
+      bad.length > 8 ? h('div', { class: 'hint', text: 'and ' + (bad.length - 8) + ' more' }) : null,
+      bad.length ? h('button', { class: 'btn gold', text: 'Fix all ' + bad.length, onclick: function () { prog.textContent = 'Fixing…'; repair(bad.map(function (u) { return u.n; })); } }) : null, prog)
+  ]);
+}
+
+// ───────────── start ─────────────
+if (DIRECT) { directStart(); return; }
+var saved = getStored();
+if (HOSTED) S.base = cleanBase(getBase());
+if (saved && (!HOSTED || S.base)) { S.secret = saved; boot().catch(function () { showLock(''); }); } else showLock('');
+})();
+
+</script>
+</body>
+</html>
